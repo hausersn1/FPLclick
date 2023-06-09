@@ -14,7 +14,7 @@ calib.doInfResp = 0;
 calib.positions = [83, 54.3, 40, 25.6, 18.5];
 % calib.positions = [68.5, 56.5, 42, 35, 27.25];
 calib.doFilt = 0;
-calib.RZ6Adelay = 97; % 98; % Samples
+calib.RZ6ADdelay = 97; % 98; % Samples
 calib.electricAcousticPolarity = -1; 
 
 calib.CavTemp = 30; % in C degree

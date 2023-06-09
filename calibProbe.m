@@ -30,7 +30,7 @@ FS_tag = 3;
 [f1RZ,RZ,~]=load_play_circuit_Nel2(FS_tag,fig_num,GB_ch);
 
 probeIndex = 0;
-gain = 30; % dB
+gain = 40; % dB
 %    temperatureF = 0; % Turn off heater during use
 %     er10x_set_gain(ER10XHandle,probeIndex,gain);
 %     er10x_set_output_limiter(ER10XHandle, 0); % Disable output limiter
@@ -117,9 +117,10 @@ for m = 1:calib.CavNumb
     % Set attenuations
     rc = PAset([0, 0, drop, drop]);
     % Set total length of sample
-    resplength = size(buffdata,2) + calib.RZ6Adelay; % How many samples to read from OAE buffer
+    resplength = size(buffdata,2) + calib.RZ6ADdelay; % How many samples to read from OAE buffer
     invoke(RZ, 'SetTagVal', 'nsamps', resplength);
     
+    for n = 1:(calib.Averages + calib.ThrowAway)
     %Start playing from the buffer:
     invoke(RZ, 'SoftTrg', playrecTrigger);
     currindex = invoke(RZ, 'GetTagVal', 'indexin');
@@ -132,14 +133,16 @@ for m = 1:calib.CavNumb
         'F32','F64',1);
     
     % Save data
-    vins(m,:,:) = vin((RZ6Adelay + 1):end);
+    if (n > calib.ThrowAway)
+    vins(m,n-calib.ThrowAway,:) = vin((calib.RZ6ADdelay + 1):end);
+    end
     
     % Get ready for next trial
     invoke(RZ, 'SoftTrg', 8); % Stop and clear "OAE" buffer
     %Reset the play index to zero:
     invoke(RZ, 'SoftTrg', 5); %Reset Trigger
-    
-    pause(0.05);
+    end 
+    % pause(0.05);
     
     %compute the average
     
@@ -168,11 +171,11 @@ for m = 1:calib.CavNumb
     freq = 1000*linspace(0,calib.SamplingRate/2,length(Vavg))';
     calib.freq = freq;
     
-    % CARD MAT2VOLTS???
-    Vo = rfft(calib.vo)*card.mat2volts*db2mag(-1 * calib.Attenuation);
+    % CARD MAT2VOLTS = 5.0
+    Vo = rfft(calib.vo)*5*db2mag(-1 * calib.Attenuation);
     calib.CavRespH(:,m) =  outut_Pa_20uPa_per_Vpp ./ Vo; %save for later
     
-    if m < calib.CavNumb
+    if m+1 < calib.CavNumb
         fprintf('Move to next tube! \n');
         
     end
