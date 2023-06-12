@@ -1,8 +1,7 @@
 %% Sound Source, Microphone Probe Thevenin Calibration
 % Note: Calibartions need to be run seperatley for each sound source
-% Original code from Hari Bharadwaj for SNAPlab
 
-% SH integrate with NEL June 2023
+% SH attempts to integrate with NEL
 
 % try
 % Initialize ER-10X  (Also needed for ER-10C for calibrator)
@@ -122,27 +121,27 @@ for m = 1:calib.CavNumb
     invoke(RZ, 'SetTagVal', 'nsamps', resplength);
     
     for n = 1:(calib.Averages + calib.ThrowAway)
-        %Start playing from the buffer:
-        invoke(RZ, 'SoftTrg', playrecTrigger);
-        currindex = invoke(RZ, 'GetTagVal', 'indexin');
-        
-        while(currindex < resplength)
-            currindex=invoke(RZ, 'GetTagVal', 'indexin');
-        end
-        
-        vin = invoke(RZ, 'ReadTagVex', 'dataout', 0, resplength,...
-            'F32','F64',1);
-        
-        % Save data
-        if (n > calib.ThrowAway)
-            vins(m,n-calib.ThrowAway,:) = vin((calib.RZ6ADdelay + 1):end);
-        end
-        
-        % Get ready for next trial
-        invoke(RZ, 'SoftTrg', 8); % Stop and clear "OAE" buffer
-        %Reset the play index to zero:
-        invoke(RZ, 'SoftTrg', 5); %Reset Trigger
+    %Start playing from the buffer:
+    invoke(RZ, 'SoftTrg', playrecTrigger);
+    currindex = invoke(RZ, 'GetTagVal', 'indexin');
+    
+    while(currindex < resplength)
+        currindex=invoke(RZ, 'GetTagVal', 'indexin');
     end
+    
+    vin = invoke(RZ, 'ReadTagVex', 'dataout', 0, resplength,...
+        'F32','F64',1);
+    
+    % Save data
+    if (n > calib.ThrowAway)
+    vins(m,n-calib.ThrowAway,:) = vin((calib.RZ6ADdelay + 1):end);
+    end
+    
+    % Get ready for next trial
+    invoke(RZ, 'SoftTrg', 8); % Stop and clear "OAE" buffer
+    %Reset the play index to zero:
+    invoke(RZ, 'SoftTrg', 5); %Reset Trigger
+    end 
     % pause(0.05);
     
     %compute the average
@@ -178,11 +177,11 @@ for m = 1:calib.CavNumb
     
     if m+1 <= calib.CavNumb
         fprintf('Move to next tube! \n');
-        % Tell user to make sure calibrator is set correctly
+            % Tell user to make sure calibrator is set correctly
         uiwait(warndlg('MOVE TO THE NEXT SMALLEST TUBE','SET TUBE WARNING','modal'));
-        
     end
     
+
     
     
     %         if m < calib.CavNumb
@@ -209,7 +208,7 @@ end
 
 
 %% Plot data
-figure(1);
+figure(11);
 ax(1) = subplot(2, 1, 1);
 semilogx(calib.freq, db(abs(calib.CavRespH)) + 20, 'linew', 2);
 ylabel('Response (dB re: 20 \mu Pa / V_{peak})', 'FontSize', 16);
@@ -220,6 +219,7 @@ ylabel('Phase (rad)', 'FontSize', 16);
 linkaxes(ax, 'x');
 legend('show');
 xlim([20, 24e3]);
+hold off; 
 %% Compute Thevenin Equivalent Pressure and Impedance
 
 %set up some variables
@@ -244,7 +244,7 @@ calib.Zc = cavimp(freq, la, irr, calib.CavDiam, calib.CavTemp); %calc cavity imp
 % It's best to have the set of half-wave resonant peaks (combined across
 % all cavities and including all harmonics) distributed as uniformly as
 % possible across the frequency range of interest.
-figure(2)
+figure(12)
 plot(calib.freq/1000,dB(calib.Zc)); hold on
 xlabel('Frequency kHz')
 ylabel('Impedance dB')

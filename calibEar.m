@@ -180,7 +180,7 @@ calib.EarRespH =  outut_Pa_20uPa_per_Vpp ./ Vo; %save for later
 
 
 %% Plot data
-figure(1);
+figure(21);
 ax(1) = subplot(2, 1, 1);
 semilogx(calib.freq, db(abs(calib.EarRespH)), 'linew', 2);
 ylabel('Response (dB re: 20 \mu Pa / V_{peak})', 'FontSize', 16);
@@ -235,7 +235,7 @@ if (calib.Yphase_lf < 44)
 end
 
 %% Plot Ear Absorbance
-figure(2);
+figure(22);
 semilogx(calib.freq * 1e-3, 100*(1 - abs(calib.Rec).^2), 'linew', 2);
 xlabel('Frequency (Hz)', 'FontSize', 16);
 ylabel('Absorbance (%)', 'FontSize', 16);
