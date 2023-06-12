@@ -1,7 +1,8 @@
 %% Sound Source, Microphone Probe Thevenin Calibration
 % Note: Calibartions need to be run seperatley for each sound source
+% Original code from Hari Bharadwaj for SNAPlab
 
-% SH attempts to integrate with NEL
+% SH integrate with NEL June 2023
 
 % try
 % Initialize ER-10X  (Also needed for ER-10C for calibrator)
@@ -121,27 +122,27 @@ for m = 1:calib.CavNumb
     invoke(RZ, 'SetTagVal', 'nsamps', resplength);
     
     for n = 1:(calib.Averages + calib.ThrowAway)
-    %Start playing from the buffer:
-    invoke(RZ, 'SoftTrg', playrecTrigger);
-    currindex = invoke(RZ, 'GetTagVal', 'indexin');
-    
-    while(currindex < resplength)
-        currindex=invoke(RZ, 'GetTagVal', 'indexin');
+        %Start playing from the buffer:
+        invoke(RZ, 'SoftTrg', playrecTrigger);
+        currindex = invoke(RZ, 'GetTagVal', 'indexin');
+        
+        while(currindex < resplength)
+            currindex=invoke(RZ, 'GetTagVal', 'indexin');
+        end
+        
+        vin = invoke(RZ, 'ReadTagVex', 'dataout', 0, resplength,...
+            'F32','F64',1);
+        
+        % Save data
+        if (n > calib.ThrowAway)
+            vins(m,n-calib.ThrowAway,:) = vin((calib.RZ6ADdelay + 1):end);
+        end
+        
+        % Get ready for next trial
+        invoke(RZ, 'SoftTrg', 8); % Stop and clear "OAE" buffer
+        %Reset the play index to zero:
+        invoke(RZ, 'SoftTrg', 5); %Reset Trigger
     end
-    
-    vin = invoke(RZ, 'ReadTagVex', 'dataout', 0, resplength,...
-        'F32','F64',1);
-    
-    % Save data
-    if (n > calib.ThrowAway)
-    vins(m,n-calib.ThrowAway,:) = vin((calib.RZ6ADdelay + 1):end);
-    end
-    
-    % Get ready for next trial
-    invoke(RZ, 'SoftTrg', 8); % Stop and clear "OAE" buffer
-    %Reset the play index to zero:
-    invoke(RZ, 'SoftTrg', 5); %Reset Trigger
-    end 
     % pause(0.05);
     
     %compute the average
@@ -161,7 +162,7 @@ for m = 1:calib.CavNumb
     % Apply calibartions to convert voltage to pressure
     % For ER-10X, this is approximate
     mic_sens = 50e-3; % mV/Pa. TO DO: change after calibration
-    mic_gain = db2mag(gain + 6); % +6 for balanced cable
+    mic_gain = db2mag(gain); % +6 for balanced cable
     P_ref = 20e-6;
     DR_onesided = 1;
     mic_output_V = Vavg / (DR_onesided * mic_gain);
@@ -175,13 +176,13 @@ for m = 1:calib.CavNumb
     Vo = rfft(calib.vo)*5*db2mag(-1 * calib.Attenuation);
     calib.CavRespH(:,m) =  outut_Pa_20uPa_per_Vpp ./ Vo; %save for later
     
-    if m+1 < calib.CavNumb
+    if m+1 <= calib.CavNumb
         fprintf('Move to next tube! \n');
+        % Tell user to make sure calibrator is set correctly
+        uiwait(warndlg('MOVE TO THE NEXT SMALLEST TUBE','SET TUBE WARNING','modal'));
         
     end
     
-    % Tell user to make sure calibrator is set correctly
-    uiwait(warndlg('MOVE TO THE NEXT SMALLEST TUBE','SET TUBE WARNING','modal'));
     
     
     %         if m < calib.CavNumb
