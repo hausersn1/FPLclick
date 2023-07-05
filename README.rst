@@ -1,5 +1,7 @@
 FPLclick
 ===========
+* Code modified by S. Hauser June 2023 for use with NEL for the HeinzLab @ Purdue *
+
 Software used at the `Systems Neuroscience of Auditory Perception lab <https://engineering.purdue.edu/SNAPLab>`_ at Purdue University for calibration approaches that help mitigate ear-canal filtering effects.
 Included are routines for measurement and calculation of Thevenin-equivalent pressure and impedance parameters of the probe, and the impedance of the ear.
 This code is an adaptation from code generously contributed by peers.
